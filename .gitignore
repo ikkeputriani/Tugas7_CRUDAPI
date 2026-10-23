@@ -1,0 +1,17 @@
+# Dependencies and generated output
+node_modules/
+frontend/.angular/
+frontend/dist/
+frontend/coverage/
+
+# Local database and runtime files
+backend/data/*.sqlite
+backend/data/*.sqlite-*
+*.log
+
+# Office temporary files
+~$*
+
+# Operating system files
+.DS_Store
+Thumbs.db

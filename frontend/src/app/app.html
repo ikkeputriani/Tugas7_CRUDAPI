@@ -1,0 +1,57 @@
+<div class="workspace">
+  <aside class="sidebar">
+    <a class="brand" href="#home" aria-label="Teleponik beranda"><span class="brand-mark">t.</span><span>teleponik<span class="brand-period">.</span></span></a>
+    <div class="nav-caption">RUANG KERJA</div>
+    <nav class="navigation" aria-label="Navigasi utama">
+      <button class="nav-item" [class.active]="view() === 'telephones'" (click)="selectView('telephones')"><span class="nav-icon">▤</span><span>Direktori telepon</span><span class="nav-count">{{ telephones().length }}</span></button>
+      <button class="nav-item" [class.active]="view() === 'todos'" (click)="selectView('todos')"><span class="nav-icon">☷</span><span>Daftar tugas</span><span class="nav-count">{{ todos().length }}</span></button>
+    </nav>
+    <div class="sidebar-bottom"><span class="connection-dot"></span><div><strong>Backend lokal</strong><small>REST API · port 3000</small></div><span class="live-tag">LIVE</span></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar"><div class="breadcrumb"><span>Ruang kerja</span><span class="crumb-slash">/</span><strong>{{ view() === 'telephones' ? 'Direktori telepon' : 'Daftar tugas' }}</strong></div><div class="topbar-right"><span class="date-label">PRAKTIKUM FRONTEND · 2026</span><span class="avatar">M</span></div></header>
+    <section class="page-content" aria-live="polite">
+      @if (view() === 'telephones') {
+        <div class="page-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> DIREKTORI KONTAK</div><h1>Semua koneksi,<br /><em>di satu tempat.</em></h1><p class="subtitle">Kelola informasi kontak dengan rapi dan selalu terbarui.</p></div><button class="primary-button" (click)="openCreateForm()"><span class="plus">+</span> Tambah kontak</button></div>
+        <div class="stats-row"><div class="stat-block"><span class="stat-label">TOTAL KONTAK</span><strong>{{ telephones().length }}</strong><span class="stat-note">tersimpan di database</span></div><div class="stat-block"><span class="stat-label">DIPERBARUI</span><strong class="stat-word">{{ telephones().length ? 'Aktif' : 'Siap' }}</strong><span class="stat-note">sinkron langsung dengan backend</span></div><div class="stat-aside"><span class="stat-aside-mark">↗</span><span>CRUD via REST API<br /><b>SQLite · tabel_telephone</b></span></div></div>
+        <section class="id-lookup" aria-labelledby="id-lookup-title"><div class="lookup-copy"><span class="stat-label">GET WITH ID</span><h2 id="id-lookup-title">Cari satu data</h2><p>Ambil record langsung dari endpoint berdasarkan ID database.</p></div><form class="lookup-form" (ngSubmit)="findTelephoneById()"><label for="telephone-id">ID data</label><input id="telephone-id" name="telephoneId" type="number" min="1" step="1" required placeholder="Contoh: 1" [ngModel]="idLookup()" (ngModelChange)="idLookup.set($event)" /><button class="lookup-button" type="submit">Cari ID</button></form></section>
+        @if (selectedTelephone(); as selected) { <section class="lookup-result" aria-label="Hasil pencarian data berdasarkan ID"><div><span class="stat-label">HASIL GET BY ID</span><strong>#{{ selected.id }} · {{ selected.Nama_User }}</strong><span>{{ selected.Alamat }} · {{ selected.No_Telp }} · {{ selected.kode_post }}</span></div><div class="row-actions"><button class="text-action" (click)="openEditForm(selected)">Ubah</button><button class="delete-action" (click)="deleteTelephone(selected)">Hapus</button></div></section> }
+        <div class="toolbar"><div class="section-label"><span class="section-index">01</span><h2>Kontak tersimpan</h2></div><label class="search-box"><span aria-hidden="true">⌕</span><input aria-label="Cari kontak" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Cari nama, nomor, alamat..." [ngModelOptions]="{standalone: true}" /><kbd>⌘ K</kbd></label></div>
+        @if (notice()) { <div class="notice-message" role="status">{{ notice() }}</div> }
+        @if (error()) { <div class="error-message" role="alert">{{ error() }} <button (click)="loadTelephones()">Coba lagi</button></div> }
+        <div class="table-frame"><div class="table-scroll"><table>
+          <thead><tr><th class="number-column">NO.</th><th>NAMA PENGGUNA</th><th>ALAMAT</th><th>NOMOR TELEPON</th><th>KODE POS</th><th>DITAMBAHKAN</th><th class="actions-column">AKSI</th></tr></thead>
+          <tbody>
+            @for (person of filteredTelephones(); track person.id; let row = $index) {
+              <tr><td class="row-number">{{ (row + 1).toString().padStart(2, '0') }}</td><td><div class="person-cell"><span class="person-avatar" [attr.data-tone]="row % 4">{{ person.Nama_User.charAt(0).toUpperCase() }}</span><span class="person-name">{{ person.Nama_User }}</span></div></td><td class="address-cell">{{ person.Alamat }}</td><td class="phone-cell">{{ person.No_Telp }}</td><td><span class="postal-tag">{{ person.kode_post }}</span></td><td class="date-cell">{{ person.date_time | date:'dd MMM yyyy' }}</td><td><div class="row-actions"><button class="text-action" (click)="openEditForm(person)">Ubah</button><button class="delete-action" (click)="deleteTelephone(person)">Hapus</button></div></td></tr>
+            } @empty {
+              <tr><td class="empty-cell" colspan="7"><span class="empty-mark">◎</span><strong>{{ loading() ? 'Menghubungkan ke backend...' : 'Belum ada kontak' }}</strong><span>{{ query() ? 'Coba kata kunci lain.' : 'Tambahkan kontak pertama untuk memulai direktori.' }}</span></td></tr>
+            }
+          </tbody>
+        </table></div><footer class="table-footer"><span>Menampilkan <b>{{ filteredTelephones().length }}</b> dari <b>{{ telephones().length }}</b> kontak</span><span class="footer-source"><span class="tiny-dot"></span> Data tersimpan lokal</span></footer></div>
+      } @else {
+        <div class="page-heading todo-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> JSONPLACEHOLDER API</div><h1>Hal kecil,<br /><em>selesai satu-satu.</em></h1><p class="subtitle">Contoh CRUD tugas yang terhubung ke API publik JSONPlaceholder.</p></div><button class="primary-button" (click)="openTodoForm()"><span class="plus">+</span> Tugas baru</button></div>
+        <div class="todo-summary"><div><span class="stat-label">DAFTAR DEMO</span><strong>{{ todos().length }}<small> tugas</small></strong></div><div class="progress-track"><span [style.width.%]="todos().length ? completedCount() / todos().length * 100 : 0"></span></div><span class="progress-caption">{{ completedCount() }} dari {{ todos().length }} selesai</span><a href="https://jsonplaceholder.typicode.com/todos" target="_blank" rel="noreferrer">BUKA API ↗</a></div>
+        <div class="toolbar todo-toolbar"><div class="section-label"><span class="section-index">02</span><h2>Semua tugas</h2></div><label class="search-box"><span aria-hidden="true">⌕</span><input aria-label="Cari tugas" [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="Cari tugas..." [ngModelOptions]="{standalone: true}" /></label></div>
+        @if (notice()) { <div class="notice-message" role="status">{{ notice() }}</div> }
+        @if (error()) { <div class="error-message" role="alert">{{ error() }} <button (click)="loadTodos()">Coba lagi</button></div> }
+        <div class="todo-list">
+          @for (todo of filteredTodos(); track todo.id; let row = $index) {
+            <article class="todo-item" [class.is-complete]="todo.completed"><button class="check-button" [attr.aria-label]="todo.completed ? 'Tandai belum selesai' : 'Tandai selesai'" (click)="toggleTodo(todo)">{{ todo.completed ? '✓' : '' }}</button><span class="todo-number">{{ (row + 1).toString().padStart(2, '0') }}</span><span class="todo-title">{{ todo.title }}</span><span class="todo-status" [class.status-done]="todo.completed">{{ todo.completed ? 'SELESAI' : 'BERJALAN' }}</span><button class="todo-delete" aria-label="Hapus tugas" (click)="deleteTodo(todo)">×</button></article>
+          } @empty { <div class="todo-empty">{{ loading() ? 'Memuat tugas...' : 'Tidak ada tugas ditemukan.' }}</div> }
+        </div>
+        <p class="api-footnote">JSONPlaceholder adalah API demo; perubahan POST, PATCH, dan DELETE disimulasikan dan tidak tersimpan permanen.</p>
+      }
+    </section>
+    <footer class="page-footer"><span>TELEPONIK <b>·</b> PRAKTIKUM CRUD ANGULAR</span><span>BUILT FOR LEARNING <span class="footer-star">✳</span></span></footer>
+  </main>
+</div>
+
+@if (formOpen()) {
+  <div class="modal-backdrop" (click)="$event.target === $event.currentTarget && formOpen.set(false)"><section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title"><div class="modal-topline"><span>{{ editingId() === null ? 'KONTAK BARU' : 'EDIT KONTAK' }}</span><button class="modal-close" aria-label="Tutup" (click)="formOpen.set(false)">×</button></div><h2 id="contact-modal-title">{{ editingId() === null ? 'Tambah kontak' : 'Perbarui kontak' }}</h2><p class="modal-description">Informasi ini disimpan ke tabel <code>tabel_telephone</code>.</p><form (ngSubmit)="saveTelephone()"><label>Nama pengguna<input name="Nama_User" [(ngModel)]="draft.Nama_User" required maxlength="100" placeholder="Contoh: Naya Putri" /></label><label>Alamat<input name="Alamat" [(ngModel)]="draft.Alamat" required maxlength="250" placeholder="Jalan dan kota" /></label><div class="form-row"><label>Nomor telepon<input name="No_Telp" [(ngModel)]="draft.No_Telp" required maxlength="30" placeholder="08xxxxxxxxxx" /></label><label>Kode pos<input name="kode_post" [(ngModel)]="draft.kode_post" required maxlength="10" placeholder="40123" /></label></div><div class="form-actions"><button class="cancel-button" type="button" (click)="formOpen.set(false)">Batal</button><button class="primary-button" type="submit">{{ editingId() === null ? 'Simpan kontak' : 'Simpan perubahan' }}</button></div></form></section></div>
+}
+
+@if (todoFormOpen()) {
+  <div class="modal-backdrop" (click)="$event.target === $event.currentTarget && todoFormOpen.set(false)"><section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="todo-modal-title"><div class="modal-topline"><span>TUGAS BARU</span><button class="modal-close" aria-label="Tutup" (click)="todoFormOpen.set(false)">×</button></div><h2 id="todo-modal-title">Tambah tugas</h2><p class="modal-description">Tugas dikirim menggunakan endpoint JSONPlaceholder.</p><form (ngSubmit)="createTodo()"><label>Judul tugas<input name="todoTitle" [ngModel]="todoDraft()" (ngModelChange)="todoDraft.set($event)" required maxlength="120" placeholder="Apa yang perlu diselesaikan?" /></label><div class="form-actions"><button class="cancel-button" type="button" (click)="todoFormOpen.set(false)">Batal</button><button class="primary-button" type="submit">Tambah tugas</button></div></form></section></div>
+}

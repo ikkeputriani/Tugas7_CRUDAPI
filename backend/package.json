@@ -1,0 +1,12 @@
+{
+  "name": "teleponik-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "REST API SQLite untuk tugas CRUD tabel_telephone",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
